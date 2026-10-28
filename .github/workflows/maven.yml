@@ -24,14 +24,15 @@ jobs:
         run: |
           echo "testcontainers.reuse.enable=true" > $env:USERPROFILE\.testcontainers.properties
       - name: Build and test
+        if: matrix.os == 'windows-latest'
         env:
           SKIP_TESTCONTAINER_TESTS: true  # Do not run TestContainer Tests in Windows Matrix Build.
         run: mvn -U -B test verify
-      - name: Linux-specific setup and SonarCloud analysis
+      - name: Linux build, tests with coverage and SonarCloud analysis
         if: matrix.os == 'ubuntu-latest'
         run: |
           # Configure Testcontainers for Linux
           mkdir -p /home/runner
           echo "testcontainers.reuse.enable=true" > /home/runner/.testcontainers.properties
-          # Run SonarCloud analysis (harness: sonar:sonar goal dropped, no SONAR_TOKEN in the fork)
-          mvn -P jacoco-code-coverage -B verify
+          # One Maven build: tests run once, under JaCoCo. (harness) sonar:sonar goal dropped: no SONAR_TOKEN in the fork
+          mvn -U -B -P jacoco-code-coverage verify
